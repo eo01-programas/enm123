@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enumerado - Control de Producción</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <style>
+        html {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-light: #eff6ff;
+            --success: #10b981;
+            --success-light: #ecfdf5;
+            --warning: #f59e0b;
+            --warning-light: #fffbeb;
+            --danger: #ef4444;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --white: #ffffff;
+            --gray-300: #cbd5e1;
+            --gray-500: #64748b;
+            --gray-800: #1e293b;
+            --row-group-a: #D9E6FF;
+            --row-group-b: #ffffff;
+        }
+
+        body {
+            font-family: 'Calibri', 'Inter', sans-serif;
+            background-color: var(--gray-50);
+            color: var(--gray-800);
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            font-size: 12px;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+
+        header {
+            background-color: var(--white);
+            border-bottom: 1px solid var(--gray-200);
+            padding: 0 30px;
+            height: 55px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--gray-800);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .brand i { color: var(--primary); font-size: 20px; }
+
+        .nav-tabs { display: flex; gap: 20px; height: 100%; }
+
+        .nav-tab {
+            background: none; border: none; height: 100%; padding: 0 8px;
+            font-size: 13px;
+            font-weight: 500; color: var(--gray-500);
+            cursor: pointer; position: relative; transition: color 0.2s;
+            display: flex; align-items: center; gap: 6px;
+            font-family: 'Calibri', sans-serif;
+        }
+
+        .nav-tab:hover { color: var(--primary); }
+        .nav-tab.active { color: var(--primary); font-weight: 600; }
+        .nav-tab.active::after {
+            content: ''; position: absolute; bottom: 0; left: 0; width: 100%;
+            height: 3px; background-color: var(--primary); border-radius: 3px 3px 0 0;
+        }
+
+        .badge {
+            background-color: var(--gray-200); color: var(--gray-800);
+            padding: 1px 6px; border-radius: 10px; font-size: 10px; font-weight: 600;
+        }
+        .nav-tab.active .badge { background-color: var(--primary-light); color: var(--primary); }
+
+        main { padding: 20px; flex: 1; overflow: hidden; box-sizing: border-box; }
+
+        .view-section { display: flex; animation: fadeIn 0.4s ease; height: 100%; flex-direction: column; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .sub-nav {
+            background-color: var(--white); padding: 3px; border-radius: 6px;
+            display: inline-flex; gap: 3px; margin-bottom: 15px;
+            border: 1px solid var(--gray-200); box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            align-self: flex-start;
+        }
+
+        .sub-tab {
+            border: none; background: none; padding: 5px 12px; border-radius: 5px;
+            font-size: 15.5px;
+            font-weight: 500; color: var(--gray-500); cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; gap: 5px;
+            font-family: 'Calibri', sans-serif;
+        }
+        .sub-tab:hover { background-color: var(--gray-50); }
+        .sub-tab.active { background-color: var(--primary-light); color: var(--primary); font-weight: 600; }
+
+        .kg-badge {
+            font-size: 12px;
+            background-color: rgba(0,0,0,0.05);
+            padding: 1px 5px;
+            border-radius: 3px;
+            color: inherit;
+        }
+        .sub-tab.active .kg-badge { background-color: rgba(37, 99, 235, 0.1); color: var(--primary); }
+
+        .table-container {
+            background: var(--white);
+            border-radius: 10px;
+            border: 1px solid var(--gray-200);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            overflow: auto;
+            flex: 1;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            min-width: 1200px;
+            table-layout: fixed;
+        }
+
+        thead th {
+            background-color: rgb(0,112,192);
+            color: #ffffff;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            padding: 8px 6px;
+            text-align: left;
+            border-bottom: 1px solid var(--gray-200);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        tbody td {
+            padding: 5px 6px;
+            border-bottom: 1px solid var(--gray-100);
+            vertical-align: middle;
+            color: var(--gray-800);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.2;
+        }
+
+        tr.group-a { background-color: var(--row-group-a); }
+        tr.group-b { background-color: var(--row-group-b); }
+        tr.priority-1 { background-color: rgba(255, 200, 200, 0.4); }
+
+        tr.group-a:hover, tr.group-b:hover {
+            box-shadow: inset 0 0 0 9999px rgba(0, 0, 0, 0.15) !important;
+        }
+
+        tbody tr:last-child td { border-bottom: none; }
+
+        .op-cell { font-weight: 600; color: var(--gray-800); }
+        .date-cell { color: var(--gray-800); font-size: 11px; text-align: center; }
+
+        select.table-select {
+            appearance: none;
+            padding: 3px 6px;
+            padding-right: 18px;
+            border-radius: 4px;
+            border: 1px solid var(--gray-300);
+            background-color: var(--white);
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            width: 100%;
+            min-width: 80px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 4px center;
+            transition: all 0.2s;
+            height: 24px;
+            font-family: 'Calibri', sans-serif;
+        }
+
+        td.p-cell { padding-left: 1px; padding-right: 3px; }
+
+        select.table-select:focus { outline: none; border-color: var(--primary); }
+
+        .sel-OK { border-color: var(--success) !important; color: #047857; font-weight: 600; background-color: var(--success-light); }
+
+        .route-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 11px;
+            line-height: 1;
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+        .route-ac {
+            color: #2563eb;
+            background: rgba(37,99,235,0.08);
+            border: 1px solid rgba(37,99,235,0.12);
+        }
+        .route-lv {
+            color: #0ea5a0;
+            background: rgba(16,185,129,0.08);
+            border: 1px solid rgba(16,185,129,0.12);
+        }
+
+        /* Modal de actualizacion */
+        .update-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .update-modal.show {
+            display: flex;
+        }
+
+        .update-modal-content {
+            background: var(--white);
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            min-width: 300px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .update-modal-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--gray-200);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        .update-modal-text {
+            color: var(--gray-800);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .update-modal-subtext {
+            color: var(--gray-500);
+            font-size: 12px;
+            margin-top: 8px;
+        }
+
+        #loader, #error-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.95);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 1000;
+        }
+        #error-screen { display: none; z-index: 1001; }
+        .spinner {
+            width: 30px; height: 30px; border: 3px solid var(--gray-200);
+            border-top: 3px solid var(--primary); border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .error-box {
+            background: #fff; padding: 20px; border-radius: 10px;
+            border: 1px solid #fee2e2; box-shadow: 0 5px 10px -3px rgba(0,0,0,0.1);
+            max-width: 400px; text-align: center;
+        }
+        .btn-retry {
+            background-color: var(--gray-800); color: white; border: none; padding: 8px 16px;
+            border-radius: 5px; cursor: pointer; font-weight: 600; margin-top: 10px; font-size: 12px;
+        }
+
+        .wrap-text {
+            white-space: normal !important;
+            overflow: visible !important;
+            text-overflow: clip !important;
+            line-height: 1.1 !important;
+            font-size: 10px !important;
+        }
+
+        .rib-si-lleva {
+            background-color: rgba(16,185,129,0.12);
+            color: #065f46;
+            padding: 3px 8px;
+            border-radius: 6px;
+            display: inline-block;
+            font-weight: 700;
+            font-size: 11px;
+            line-height: 1;
+        }
+        .rib-text { display: inline-block; padding: 2px 6px; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <!-- Modal de actualizacion de datos -->
+    <div id="updateModal" class="update-modal">
+        <div class="update-modal-content">
+            <div class="update-modal-spinner"></div>
+            <div class="update-modal-text">Actualizando dato...</div>
+            <div class="update-modal-subtext">Guardando en el sheet</div>
+        </div>
+    </div>
+
+    <!-- Loader -->
+    <div id="loader">
+        <div class="spinner"></div>
+        <p style="margin-top: 10px; color: var(--gray-500);">Cargando datos...</p>
+    </div>
+
+    <!-- Error Screen -->
+    <div id="error-screen">
+        <div class="error-box">
+            <i class="ph ph-warning-circle" style="font-size: 40px; color: var(--danger);"></i>
+            <h3 style="margin: 10px 0 5px;">Error al cargar</h3>
+            <p id="error-details" style="color: var(--gray-500); font-size: 12px;"></p>
+            <button class="btn-retry" onclick="location.reload()">Reintentar</button>
+        </div>
+    </div>
+
+    <!-- HEADER -->
+    <header>
+        <div class="brand">
+            <i class="ph ph-list-numbers"></i>
+            Enumerado
+        </div>
+        <nav class="nav-tabs">
+            <button class="nav-tab active">
+                <i class="ph ph-list-numbers"></i> Enumerado <span class="badge" id="count-enumerado">0</span>
+            </button>
+        </nav>
+    </header>
+
+    <main>
+        <!-- VISTA ENUMERADO -->
+        <section id="view-enumerado" class="view-section">
+            <div class="sub-nav" style="margin-bottom:10px;">
+                <button id="enumerado-btn-por" class="sub-tab active">
+                    Por enumerar <span class="kg-badge" id="enumerado-pds-por">[-]</span>
+                </button>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th id="th-enumerado-p" style="width: 30px;">P</th>
+                            <th style="width: 65px; text-align: center;">HOD</th>
+                            <th style="width: 75px; text-align: center;">F.ING.COST</th>
+                            <th style="width: 40px;">CLIENTE</th>
+                            <th style="width: 50px;">RUTA</th>
+                            <th style="width: 45px;">OC</th>
+                            <th style="width: 80px;">COLOR</th>
+                            <th style="width: 45px; text-align:center;">PDS</th>
+                            <th style="width: 60px;">PRENDA</th>
+                            <th style="width: 70px;">TIPO CERT.</th>
+                            <th style="width: 85px;">RIB</th>
+                            <th style="width: 80px;">EQUIPO_CORTE</th>
+                            <th style="width: 80px;">STATUS_CORTE</th>
+                            <th style="width: 80px;">BLOQUES?</th>
+                            <th style="width: 80px;">ESTADO_ENM</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody-enumerado"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // --- CONFIGURACIÓN ---
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby4ODgg42501uWzRjOECP6tQOXS3edde0AyNXknv6ffT5UI0hzRzLqP3-xaEMmkDMY7sw/exec";
+        const SHEET_ID = "18cQuwqerdMggAeJ8TCUKA7-gujXsA91-CRMUTNpr8aQ";
+
+        let rawData = [];
+        let colMap = {};
+
+        document.addEventListener('DOMContentLoaded', initApp);
+
+        function initApp() {
+            const script = document.createElement('script');
+            script.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=responseHandler:loadDataCallback`;
+            script.onerror = () => showError("Error de conexión con Google Sheets.");
+            document.body.appendChild(script);
+        }
+
+        window.loadDataCallback = function(jsonResponse) {
+            try {
+                if (!jsonResponse || !jsonResponse.table) throw new Error("Datos inválidos.");
+
+                let headerRowIndex = -1;
+                const rowsRaw = jsonResponse.table.rows.map(r => r.c.map(cell => (cell && cell.v !== null) ? cell.v : ""));
+                const gvizHeaders = jsonResponse.table.cols.map(col => col.label || col.id);
+
+                console.log('=== DEBUG GVIZ ===');
+                console.log('gvizHeaders:', gvizHeaders);
+                console.log('Total rowsRaw:', rowsRaw.length);
+                console.log('Primera fila rowsRaw[0]:', rowsRaw[0] ? rowsRaw[0].slice(0,5) : 'none');
+                console.log('==================');
+
+                if (gvizHeaders.includes("OP TELA")) {
+                    rawData = [gvizHeaders, ...rowsRaw];
+                } else {
+                    for(let i=0; i<rowsRaw.length; i++) {
+                        if (rowsRaw[i].includes("OP TELA")) {
+                            headerRowIndex = i;
+                            break;
+                        }
+                    }
+                    if (headerRowIndex !== -1) {
+                        rawData = rowsRaw.slice(headerRowIndex);
+                    } else {
+                        rawData = [gvizHeaders, ...rowsRaw];
+                    }
+                }
+
+                console.log('rawData[0] (headers):', rawData[0] ? rawData[0].slice(0,5) : 'none');
+                console.log('rawData[1] (primera fila datos):', rawData[1] ? rawData[1].slice(0,5) : 'none');
+                console.log('rawData length:', rawData.length);
+
+                if (rawData.length > 0) {
+                    rawData[0] = rawData[0].map(h => h ? h.toString().trim() : "");
+                }
+
+                mapColumns();
+                renderEnumerado();
+                document.getElementById('loader').style.display = 'none';
+            } catch (error) {
+                console.error(error);
+                showError("Error procesando datos: " + error.message);
+            }
+        };
+
+        function showError(msg) {
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('error-screen').style.display = 'flex';
+            document.getElementById('error-details').innerText = msg;
+        }
+
+        function getColIndex(name) {
+            if (!rawData || rawData.length === 0) return -1;
+            const headers = rawData[0];
+            const target = name.toLowerCase().trim();
+            return headers.findIndex(h => h.toLowerCase().trim() === target);
+        }
+
+        function mapColumns() {
+            if (!rawData || rawData.length === 0) return;
+            colMap = {};
+            const knownColumns = [
+                "HOD", "F.ING.COST", "CLIENTE", "OP TELA", "PARTIDA",
+                "OP", "CORTE", "COLOR", "KG GIRADOS", "PDS GIRADAS", "ARTÍCULO",
+                "NRO. MOLDE", "TIPO CERTIFICADO", "estado_bloqueo", "estado_rib",
+                "estado_lavada", "RUTA TELA", "ESTILO", "PRENDA", "F. GIRADO", "RIB",
+                "EQUIPO CORTE", "EQUIPO_CORTE", "equipo_corte",
+                "STATUS_CORTE", "STATUS", "status", "ESTADO CORTE", "ESTADO_CORTE", "estado_corte",
+                "ESTADO BLOQUES", "ESTADO_BLOQUES", "estado_bloques",
+                "estado_enumerado", "ESTADO_ENUMERADO"
+            ];
+
+            knownColumns.forEach(col => {
+                const idx = getColIndex(col);
+                if (idx !== -1) colMap[col] = idx;
+            });
+
+            try {
+                const idxFDesp = findHeaderIndexCaseInsensitive('F. DESPACHO');
+                if (idxFDesp !== -1) {
+                    colMap['HOD'] = idxFDesp;
+                    colMap['F. DESPACHO'] = idxFDesp;
+                }
+            } catch(e) {}
+        }
+
+        function findHeaderIndexCaseInsensitive(name) {
+            if (!rawData || rawData.length === 0) return -1;
+            const headers = rawData[0];
+            const norm = s => String(s || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            const target = norm(name);
+            for (let i = 0; i < headers.length; i++) {
+                if (norm(headers[i]) === target) return i;
+            }
+            return -1;
+        }
+
+        function getVal(row, colName) {
+            if (!colName) return "";
+            let idx = colMap[colName];
+            if (idx !== undefined && idx !== -1) return row[idx] || "";
+
+            const variants = [
+                colName,
+                colName.toLowerCase(),
+                colName.toUpperCase(),
+                colName.replace(/[^a-zA-Z0-9]/g, ''),
+                colName.toLowerCase().replace(/[^a-z0-9]/g, ''),
+                colName.toUpperCase().replace(/[^A-Z0-9]/g, '')
+            ];
+            for (let k of variants) {
+                idx = colMap[k];
+                if (idx !== undefined && idx !== -1) return row[idx] || "";
+            }
+
+            try {
+                const found = findHeaderIndexCaseInsensitive(colName);
+                if (found !== -1) return row[found] || "";
+            } catch (e) {}
+
+            return "";
+        }
+
+        function formatDateCustom(val) {
+            const mesesEs = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
+                            'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
+            if (typeof val === 'string' && val.includes('Date(')) {
+                const match = val.match(/Date\((\d+),(\d+),(\d+)\)/);
+                if (match) {
+                    const month = parseInt(match[2]);
+                    const day = String(match[3]).padStart(2, '0');
+                    return `${day}/${mesesEs[month]}`;
+                }
+            }
+
+            if (typeof val === 'number' && val > 30000) {
+                const date = new Date(Math.round((val - 25569) * 86400 * 1000));
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = mesesEs[date.getMonth()];
+                return `${day}/${month}`;
+            }
+
+            return val;
+        }
+
+        function formatValue(val, type) {
+            if (type === 'date') {
+                return formatDateCustom(val);
+            }
+            return val;
+        }
+
+        function formatThousands(val, decimals = 0) {
+            if (val === null || val === undefined || isNaN(val)) return val;
+            if (decimals > 0) {
+                return Number(val).toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+            }
+            return Math.round(val).toLocaleString('en-US');
+        }
+
+        function normalizeClientName(clientName) {
+            if (!clientName) return "";
+            const name = clientName.toString().toUpperCase();
+            if (name.includes("LACOSTE")) return "LAC";
+            if (name.includes("ATHLETA, INC.")) return "ATH";
+            if (name.includes("BANANA REPUBLIC, LLC")) return "BNN";
+            if (name.includes("THEORY LLC,")) return "THE";
+            if (name.includes("DISH & DUER")) return "DDU";
+            if (name.includes("SKECHERS PERFORMANCE")) return "SKE";
+            if (name.includes("LULULEMON ATHLETICA CANADA INC")) return "LLL";
+            if (name.includes("AM RETAIL S.A.C.")) return "AMR";
+            return clientName;
+        }
+
+        function abbreviateHeather(colorName) {
+            if (!colorName && colorName !== 0) return colorName;
+            try {
+                return String(colorName).replace(/\bHEATHER(?:ED)?\b/ig, 'HTR');
+            } catch (e) {
+                return colorName;
+            }
+        }
+
+        function normalizePrenda(prenda) {
+            if (!prenda && prenda !== 0) return prenda || "";
+            try {
+                let s = String(prenda).toUpperCase().trim();
+                s = s.replace(/\bT[- ]?SHIRT\b\s*/ig, '');
+                if (s === '') return String(prenda).toUpperCase().trim();
+                s = s.replace(/\s+/g, '');
+                s = s.replace(/\//g, '');
+                return s;
+            } catch (e) {
+                return prenda;
+            }
+        }
+
+        function normalizeTipoCert(tipoCert) {
+            if (tipoCert === undefined || tipoCert === null) return '';
+            try {
+                return String(tipoCert).replace(/\s*\|\s*/g, '|').trim();
+            } catch (e) { return tipoCert; }
+        }
+
+        function renderRutaBadge(rutaVal) {
+            const rutaKey = String(rutaVal || "").toUpperCase().trim();
+            let rutaDisplay = rutaVal;
+
+            if (rutaKey === 'ACABADA') {
+                rutaDisplay = `<span class="route-badge route-ac">AC</span>`;
+            } else if (rutaKey === 'LAVADA') {
+                rutaDisplay = `<span class="route-badge route-lv">LV</span>`;
+            }
+
+            return rutaDisplay;
+        }
+
+        function renderEnumerado() {
+            const tbody = document.getElementById('tbody-enumerado');
+            if (!tbody) return;
+            tbody.innerHTML = "";
+            let count = 0;
+            let pds_total = 0;
+
+            const items = [];
+            for (let i = 1; i < rawData.length; i++) {
+                const row = rawData[i];
+                const estadoCorteVal = (row[colMap["STATUS_CORTE"]] || row[colMap["STATUS"]] || row[colMap["status"]] || row[colMap["estado_corte"]] || row[colMap["ESTADO CORTE"]] || row[colMap["ESTADO_CORTE"]]) || "";
+                const isCorteOk = String(estadoCorteVal).toUpperCase() === 'OK';
+
+                if (!isCorteOk) continue;
+
+                let ev = '';
+                try {
+                    const idxEv = findHeaderIndexCaseInsensitive('estado_enumerado');
+                    if (idxEv !== -1 && rawData[i] && rawData[i][idxEv] !== undefined) ev = rawData[i][idxEv];
+                    else ev = getVal(row, 'estado_enumerado') || '';
+                } catch (e) { ev = getVal(row, 'estado_enumerado') || ''; }
+
+                const evNorm = (ev || '').toString().toUpperCase().trim();
+                if (evNorm === 'OK ENM' || evNorm === 'OK S/ENM' || evNorm === 'OK PAQUETEO') continue;
+
+                const pdsVal = parseFloat(getVal(row, "PDS GIRADAS")) || 0;
+                pds_total += pdsVal;
+
+                let ocVal = '';
+                try {
+                    const idxOc = findHeaderIndexCaseInsensitive('OC');
+                    if (idxOc !== -1 && rawData[i] && rawData[i][idxOc] !== undefined) ocVal = String(rawData[i][idxOc]);
+                    else ocVal = (getVal(row, 'OC') || '').toString();
+                } catch (e) { ocVal = (getVal(row, 'OC') || '').toString(); }
+
+                items.push({ row, i, oc: (ocVal || '').toString().trim() });
+                count++;
+            }
+
+            items.sort((a, b) => (a.oc || '').localeCompare(b.oc || '', undefined, { numeric: true, sensitivity: 'base' }));
+
+            let lastOc = null;
+            let groupToggle = false;
+
+            items.forEach(item => {
+                const row = item.row;
+                const i = item.i;
+                const tr = document.createElement('tr');
+
+                // P
+                let pValue = '';
+                try {
+                    const idxP = findHeaderIndexCaseInsensitive('P');
+                    if (idxP !== -1 && row[idxP] !== undefined && row[idxP] !== null) {
+                        pValue = String(row[idxP]).trim();
+                    }
+                } catch (e) {}
+
+                // HOD
+                const fDespacho = formatValue(getVal(row, "HOD"), 'date');
+
+                // F.ING.COST
+                const fIngCost = formatValue(getVal(row, "F.ING.COST"), 'date');
+
+                // CLIENTE
+                const cliente = normalizeClientName(getVal(row, "CLIENTE"));
+
+                // RUTA
+                const rutaVal = getVal(row, "RUTA TELA") || "";
+                const rutaHtml = renderRutaBadge(rutaVal);
+
+                // OC
+                const op = getVal(row, "OP");
+                const corte = getVal(row, "CORTE");
+                const oc = (op || corte) ? `${op}-${corte}` : "";
+
+                // COLOR
+                const rawColor = getVal(row, "COLOR");
+                const color = abbreviateHeather(rawColor);
+
+                // PDS
+                const pdsVal = parseFloat(getVal(row, "PDS GIRADAS")) || 0;
+
+                // PRENDA
+                const prenda = normalizePrenda(getVal(row, "PRENDA"));
+
+                // TIPO CERT.
+                const tipoCert = normalizeTipoCert(getVal(row, "TIPO CERTIFICADO"));
+
+                // RIB
+                const rib = getVal(row, "RIB") || "NO LLEVA";
+                const ribHtml = (rib && rib !== "NO LLEVA")
+                    ? `<span class="rib-si-lleva">${rib}</span>`
+                    : `<span class="rib-text">${rib}</span>`;
+
+                // EQUIPO_CORTE
+                const equipoCorte = getVal(row, "EQUIPO_CORTE") || getVal(row, "EQUIPO CORTE") || getVal(row, "equipo_corte") || "";
+
+                // STATUS_CORTE
+                const statusCorte = getVal(row, "STATUS_CORTE") || getVal(row, "STATUS") || getVal(row, "estado_corte") || "";
+
+                // BLOQUES?
+                const bloques = getVal(row, "ESTADO BLOQUES") || getVal(row, "ESTADO_BLOQUES") || getVal(row, "estado_bloques") || "";
+
+                // ESTADO_ENM
+                let estadoEnumVal = '';
+                try {
+                    const idxEv = findHeaderIndexCaseInsensitive('estado_enumerado');
+                    if (idxEv !== -1 && row[idxEv] !== undefined) estadoEnumVal = row[idxEv] || '';
+                    else estadoEnumVal = getVal(row, 'estado_enumerado') || '';
+                } catch (e) { estadoEnumVal = getVal(row, 'estado_enumerado') || ''; }
+                estadoEnumVal = (estadoEnumVal || '').toString().trim();
+                const enumClass = (estadoEnumVal === 'OK ENM' || estadoEnumVal === 'OK S/ENM' || estadoEnumVal === 'OK PAQUETEO') ? 'sel-OK' : '';
+
+                tr.innerHTML = `
+                    <td class="p-cell">${pValue}</td>
+                    <td class="date-cell">${fDespacho}</td>
+                    <td class="date-cell">${fIngCost}</td>
+                    <td>${cliente}</td>
+                    <td>${rutaHtml}</td>
+                    <td class="op-cell">${oc}</td>
+                    <td title="${color}">${color}</td>
+                    <td style="text-align:center;">${pdsVal}</td>
+                    <td>${prenda}</td>
+                    <td title="${tipoCert}">${tipoCert}</td>
+                    <td>${ribHtml}</td>
+                    <td>${equipoCorte}</td>
+                    <td>${statusCorte}</td>
+                    <td>${bloques}</td>
+                    <td>
+                        <select class="table-select ${enumClass}" onchange="updateRow(${i}, 'estado_enumerado', this.value, this)">
+                            <option value="X ENM" ${(!estadoEnumVal || estadoEnumVal === 'X ENM') ? 'selected' : ''}>X ENM</option>
+                            <option value="OK ENM" ${estadoEnumVal === 'OK ENM' ? 'selected' : ''}>OK ENM</option>
+                            <option value="OK S/ENM" ${estadoEnumVal === 'OK S/ENM' ? 'selected' : ''}>OK S/ENM</option>
+                            <option value="OK PAQUETEO" ${estadoEnumVal === 'OK PAQUETEO' ? 'selected' : ''}>OK PAQUETEO</option>
+                        </select>
+                    </td>
+                `;
+
+                const ocNow = (item.oc || '').toString();
+                if (ocNow !== lastOc) {
+                    groupToggle = !groupToggle;
+                    lastOc = ocNow;
+                }
+                tr.classList.add(groupToggle ? 'group-a' : 'group-b');
+
+                if (pValue === '1') {
+                    tr.classList.add('priority-1');
+                }
+
+                tbody.appendChild(tr);
+            });
+
+            document.getElementById('count-enumerado').innerText = count;
+            try {
+                const el = document.getElementById('enumerado-pds-por');
+                if (el) el.innerText = `[${formatThousands(pds_total,0)}pds]`;
+            } catch (e) {}
+        }
+
+        window.updateRow = function(rowIndex, colName, value, selectElement) {
+            try {
+                // Mostrar modal de actualizacion
+                const updateModal = document.getElementById('updateModal');
+                if (updateModal) {
+                    updateModal.classList.add('show');
+                }
+
+                // Buscar índice de columna de manera robusta
+                let idx = findHeaderIndexCaseInsensitive(colName);
+                if (idx === -1) idx = colMap[colName];
+                if (idx === -1) idx = getColIndex(colName);
+
+                // Actualizar dato en memoria local
+                if (idx !== -1 && rawData[rowIndex]) {
+                    rawData[rowIndex][idx] = value;
+                }
+
+                if (selectElement) {
+                    selectElement.classList.remove('sel-OK');
+                    if (value === 'OK ENM' || value === 'OK S/ENM' || value === 'OK PAQUETEO') {
+                        selectElement.classList.add('sel-OK');
+                    }
+                }
+
+                // Re-render para quitar la fila si ya está marcada como OK
+                setTimeout(() => {
+                    renderEnumerado();
+                }, 300);
+
+                // Determinar el nombre exacto de la columna para enviar al backend
+                // El backend busca por nombre exacto con headers.indexOf(colName)
+                let sendColName = colName;
+                if (idx !== -1 && rawData[0] && rawData[0][idx]) {
+                    sendColName = rawData[0][idx];
+                }
+
+                // IMPORTANTE: El rowIndex en rawData necesita convertirse a la fila del Sheet
+                // rawData[0] = headers (gviz cols), rawData[1] = rowsRaw[0] = fila 2 del sheet
+                // Entonces rawData[i] corresponde a la fila i+1 del sheet
+                const sheetRow = rowIndex + 1;
+
+                console.log('Guardando:', { 
+                    rawDataIndex: rowIndex, 
+                    sheetRow: sheetRow,
+                    colName: colName, 
+                    sendColName: sendColName, 
+                    value: value,
+                    colIdx: idx
+                });
+
+                fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        action: "update",
+                        row: sheetRow,
+                        colName: sendColName,
+                        value: value
+                    })
+                }).then(response => {
+                    console.log('Actualizacion completada');
+                    // Ocultar modal después de 1.5 segundos para asegurar que se guarde
+                    setTimeout(() => {
+                        if (updateModal) {
+                            updateModal.classList.remove('show');
+                        }
+                    }, 1500);
+                }).catch(e => {
+                    console.error("Error guardando", e);
+                    // Ocultar modal en caso de error
+                    if (updateModal) {
+                        updateModal.classList.remove('show');
+                    }
+                });
+            } catch (e) {
+                console.error('Error preparando guardado:', e);
+                // Ocultar modal en caso de error
+                const updateModal = document.getElementById('updateModal');
+                if (updateModal) {
+                    updateModal.classList.remove('show');
+                }
+            }
+        };
+    </script>
+</body>
+</html>
