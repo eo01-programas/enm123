@@ -672,13 +672,13 @@
                     else ocVal = (getVal(row, 'OC') || '').toString();
                 } catch (e) { ocVal = (getVal(row, 'OC') || '').toString(); }
 
-                items.push({ row, i, oc: (ocVal || '').toString().trim() });
+                items.push({ row, i, oc: (ocVal || '').toString().trim(), opPtda: (String(getVal(row, 'OP TELA') || '').trim() + '-' + String(getVal(row, 'PARTIDA') || '').trim()) });
                 count++;
             }
 
-            items.sort((a, b) => (a.oc || '').localeCompare(b.oc || '', undefined, { numeric: true, sensitivity: 'base' }));
+            items.sort((a, b) => (a.opPtda || '').localeCompare(b.opPtda || '', undefined, { numeric: true, sensitivity: 'base' }));
 
-            let lastOc = null;
+            let lastOpPtda = null;
             let groupToggle = false;
 
             items.forEach(item => {
@@ -776,10 +776,10 @@
                     </td>
                 `;
 
-                const ocNow = (item.oc || '').toString();
-                if (ocNow !== lastOc) {
+                const opPtdaNow = (item.opPtda || '').toString();
+                if (opPtdaNow !== lastOpPtda) {
                     groupToggle = !groupToggle;
-                    lastOc = ocNow;
+                    lastOpPtda = opPtdaNow;
                 }
                 tr.classList.add(groupToggle ? 'group-a' : 'group-b');
 
